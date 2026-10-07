@@ -1,0 +1,19 @@
+{
+  "pack_version": "0.1.0-draft",
+  "prepared_at": "2026-10-07",
+  "status": "Derived guidance; not an implemented protocol or an approved interoperability standard",
+  "source_files": [
+    {
+      "path": "README.md",
+      "sha256": "36fb5ae833816a24648237f722163a322acdad710cabad56ac5176b21b9884a2"
+    },
+    {
+      "path": "MANIFESTO.md",
+      "sha256": "5ecbfad6c561336892898b54c9652405dc0e222a83014a0eb728ee9c62cd43d1"
+    },
+    {
+      "path": "agentic_polymodality_openclaw_whitepaper.docx",
+      "sha256": "4ab641698256092af6b6d19171b784837fc9fb970a3121ff8cb5176682a98ec1"
+    }
+  ]
+}

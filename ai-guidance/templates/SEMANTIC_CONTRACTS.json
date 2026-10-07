@@ -1,0 +1,177 @@
+{
+  "_status": "Authoring templates only; not JSON Schema, valid live messages, or proof of authority. Replace placeholders and validate before use.",
+  "modality": {
+    "id": "<domain>",
+    "version": "<version>",
+    "purpose": "<purpose>",
+    "concepts": [
+      {
+        "id": "<domain.term>",
+        "meaning": "<local meaning>",
+        "examples": [
+          "<example>"
+        ],
+        "non_examples": [
+          "<counterexample>"
+        ]
+      }
+    ],
+    "assumptions": [
+      "<assumption>"
+    ],
+    "evidence_standards": [
+      "<evidence type and sufficiency>"
+    ],
+    "boundaries": [
+      "<what this domain cannot decide>"
+    ],
+    "owner": "<domain owner>"
+  },
+  "binding": {
+    "agent_id": "<actor>",
+    "represents": "<entity>",
+    "version": "<version>",
+    "modalities": [
+      {
+        "id": "<domain>",
+        "version": "<version>"
+      }
+    ],
+    "context_ref": "<context@version>",
+    "delegation_ref": "<reference; requires trusted verification>"
+  },
+  "envelope": {
+    "envelope_id": "<id>",
+    "version": "<version>",
+    "source_agent": "<actor>",
+    "represents": "<entity>",
+    "binding_ref": "<binding@version>",
+    "source_modality": "<domain@version>",
+    "subject": "<shared entity>",
+    "context_ref": "<context@version>",
+    "observations": [
+      {
+        "id": "<observation>",
+        "statement": "<observed fact>",
+        "evidence_refs": [
+          "<evidence>"
+        ]
+      }
+    ],
+    "claims": [
+      {
+        "claim_id": "<id>",
+        "claim_type": "<qualified type>",
+        "statement": "<domain interpretation>",
+        "concept_refs": [
+          "<domain.term@version>"
+        ],
+        "scope": {
+          "transaction": "<id>",
+          "conditions": [
+            "<conditions>"
+          ]
+        },
+        "evidence_refs": [
+          "<evidence>"
+        ],
+        "assumptions": [
+          "<assumption>"
+        ],
+        "confidence": {
+          "level": "<low|medium|high>",
+          "basis": "<basis; not calibrated probability>"
+        },
+        "delegation_ref": "<delegation>",
+        "policy_ref": "<policy@version>",
+        "issued_at": "<ISO-8601 UTC>",
+        "expires_at": "<ISO-8601 UTC or explicit non-temporal validity rule>"
+      }
+    ],
+    "recommendations": [
+      "<advisory recommendation>"
+    ],
+    "open_questions": [
+      "<question and appropriate owner>"
+    ],
+    "original_ref": "<immutable record location>"
+  },
+  "bridge": {
+    "bridge_id": "<id>",
+    "version": "<version>",
+    "status": "proposed",
+    "from": "<domainA.term@version>",
+    "to": "<domainB.term@version>",
+    "relationship": "<relationship>",
+    "justification": "<supported reasoning>",
+    "conditions": [
+      "<when applicable>"
+    ],
+    "counterexamples": [
+      "<when not applicable>"
+    ],
+    "information_loss": [
+      "<lost detail or explicit none>"
+    ],
+    "confidence": {
+      "level": "<level>",
+      "basis": "<basis>"
+    },
+    "reviewer": "<reviewer; approval not assumed>"
+  },
+  "synthesis": {
+    "synthesis_id": "<id>",
+    "subject": "<shared entity>",
+    "context_ref": "<context@version>",
+    "source_conclusions": [
+      {
+        "claim_id": "<id>",
+        "envelope_ref": "<id@version>",
+        "meaning_preserved": "<local meaning>"
+      }
+    ],
+    "bridge_inferences": [
+      {
+        "bridge_ref": "<id@version>",
+        "claim_refs": [
+          "<id>"
+        ],
+        "conditions_status": "<satisfied|unsatisfied|unknown>",
+        "reason": "<reason>"
+      }
+    ],
+    "synthesized_conclusions": [
+      {
+        "id": "<id>",
+        "statement": "<new cross-domain conclusion>",
+        "claim_refs": [
+          "<id>"
+        ],
+        "bridge_refs": [
+          "<id@version>"
+        ],
+        "evidence_refs": [
+          "<id>"
+        ],
+        "assumptions": [
+          "<assumption>"
+        ],
+        "uncertainty": "<uncertainty>"
+      }
+    ],
+    "conflicts": [
+      "<unresolved conflict>"
+    ],
+    "missing_decisions": [
+      "<decision and owner>"
+    ],
+    "action_status": {
+      "status": "<advisory|blocked|eligible|executed>",
+      "verification_refs": [
+        "<trusted verifier result>"
+      ],
+      "enforcement_ref": "<actual control>",
+      "reason": "<reason; synthesis alone is insufficient>"
+    }
+  }
+}

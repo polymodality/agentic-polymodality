@@ -1,0 +1,497 @@
+Agentic Polymodality
+
+The Synthesis of Dimensions in OpenClaw Today
+
+A practical white paper for implementing cross-domain semantic synthesis with today's multi-agent techniques, before a dedicated polymodality product exists.
+
+Agents inhabit domains. Polymodality connects the dimensions.
+
+Working definition
+
+Agentic Polymodality is the interdimensional fabric of multi-agent intelligence: a technique for allowing agents to reason within distinct semantic domains and then synthesize across those dimensions without flattening their differences.
+
+Concept White PaperVersion 1.0  |  September 18, 2026
+
+Contents
+
+Executive Summary
+
+1. The Idea: Intelligence Has Dimensions
+
+2. Agents and Modalities Are Orthogonal
+
+3. What OpenClaw Already Provides
+
+4. A Product-Free Reference Architecture
+
+5. The Core Technique
+
+6. Implementing the Technique in OpenClaw Today
+
+7. A Worked Cross-Domain Example
+
+8. Prompt and File Templates
+
+9. Governance, Safety, and Semantic Integrity
+
+10. Measuring Whether Polymodal Synthesis Is Working
+
+11. Limitations of the Technique Today
+
+12. From Technique to Product
+
+Conclusion
+
+Appendix A: Minimal Starter Layout
+
+Appendix B: Reference Sources
+
+Executive Summary
+
+Multi-agent systems solve an important problem: they distribute work among specialized actors. Agentic Polymodality addresses a different problem: specialists do not merely know different things; they often interpret the same thing differently. Engineering, cybersecurity, finance, legal, operations, and marketing can all discuss “risk,” “exposure,” “control,” “value,” or “failure,” while attaching materially different meanings, assumptions, thresholds, and consequences to those terms.
+
+The central proposal of this paper is that a multi-agent system should preserve those differences instead of prematurely forcing every agent into a shared vocabulary. A modality is treated as a first-class semantic dimension containing its own concepts, assumptions, relationships, evidence standards, and interpretive rules. Agents operate within one or more of these dimensions. A separate synthesis step relates the dimensions to each other.
+
+Multi-agent systems distribute work. Agentic Polymodality distributes understanding, then synthesizes the dimensions.
+
+No dedicated polymodality product is required to experiment with this approach today. OpenClaw already supports isolated agents with per-agent workspaces and bootstrap files, cross-agent session calls, per-agent configuration, and plugin hooks that can add contextual material or constrain tool surfaces. [1] [2] [3] Those primitives are enough to build a disciplined, file-and-prompt-based implementation of the technique.
+
+The minimum viable implementation described here uses five constructs: modality manifests, agent-to-modality bindings, dimensional envelopes, concept bridges, and a synthesis protocol. Together they create an “interdimensional fabric” above the ordinary multi-agent topology.
+
+1. The Idea: Intelligence Has Dimensions
+
+1.1 Beyond specialization
+
+A conventional multi-agent architecture typically divides a problem by role: researcher, coder, reviewer, planner, analyst, writer, and so on. That is useful, but it often assumes that all participants ultimately inhabit the same semantic universe. They exchange natural-language messages, and the receiving agent is expected to infer what the sender meant.
+
+Agentic Polymodality starts from a stronger premise: domains are not just collections of facts; they are different coordinate systems for understanding the same reality. A vulnerability can be a technical defect to engineering, an exploitable condition to security, a control deficiency to audit, a potential duty or exposure to legal, and a probabilistic loss to finance. These are not merely synonyms. They are projections of one condition into different dimensions.
+
+1.2 Modality is not multimedia
+
+In this paper, “modality” does not mean text versus image versus audio, and it does not mean model selection. It means a semantic mode of interpretation: a domain-specific way of defining concepts, validating evidence, forming relationships, and deciding what matters. The word is intentionally broader than “role” and narrower than “worldview.”
+
+Design principle
+
+Do not ask every agent to speak one universal language. Preserve local meaning first; translate and synthesize second.
+
+1.3 The synthesis of dimensions
+
+The objective is not consensus for its own sake. The objective is to identify how one dimension changes the significance of another. A technical architecture may create a security exposure; that exposure may create a compliance consequence; the compliance consequence may create financial risk; the financial consequence may change the engineering priority. The value appears in the path across dimensions.
+
+2. Agents and Modalities Are Orthogonal
+
+An agent and a modality should be represented as separate concepts. The agent answers “who is doing the work?” The modality answers “within what semantic frame is the work being interpreted?”
+
+Concept
+
+Represents
+
+Examples
+
+Agent
+
+Actor: identity, tools, memory, responsibilities
+
+Vulnerability analyst; pricing analyst; product architect
+
+Modality
+
+Semantic frame: concepts, assumptions, relationships, evidence rules
+
+Cybersecurity; finance; engineering; legal/policy
+
+Bridge
+
+Relationship between concepts in different modalities
+
+security.exposure contributes_to finance.exposure
+
+Synthesis
+
+Reasoning across multiple preserved modalities
+
+Technical condition → security implication → legal consequence → financial effect
+
+This separation matters because several agents may share the same modality, and one agent may occasionally participate in more than one modality if the design explicitly permits it. What should not happen silently is semantic drift: an agent changing the meaning of a domain term halfway through a workflow without recording that translation.
+
+3. What OpenClaw Already Provides
+
+OpenClaw does not need native knowledge of “polymodality” to support the technique. Its existing multi-agent primitives provide the substrate.
+
+OpenClaw primitive
+
+Use in polymodality
+
+Why it matters
+
+Per-agent workspaces
+
+Store modality-specific instructions, vocabulary, examples, and memory
+
+Keeps semantic context local to an agent or domain
+
+AGENTS.md / SOUL.md / workspace files
+
+Express operating rules and domain behavior
+
+Provides a native place for persistent modality guidance
+
+Per-agent configuration
+
+Assign workspaces, tools, skills, model, sandbox, and subagent behavior
+
+Separates actors operationally while preserving a shared gateway
+
+sessions_send / session tools
+
+Pass work and results across agents
+
+Provides the transport for dimensional envelopes
+
+Cross-agent policy
+
+Control which agents may call one another
+
+Lets the topology reflect trusted domain relationships
+
+before_prompt_build hook (optional)
+
+Add context or narrow tools dynamically
+
+Useful later for automating modality injection
+
+before_tool_call hook (optional)
+
+Gate or approve tool execution
+
+Useful for policy enforcement, but not required for semantic synthesis
+
+OpenClaw documents each configured agent as having its own workspace and bootstrap context; its session tools can run or message other sessions and agents; and its current plugin hooks can modify prompt context or gate tool calls. [1] [2] [4]
+
+The practical implication is important: the first version of Agentic Polymodality can be a technique, not software. A team can model modalities in Markdown/YAML files, instruct domain agents to emit structured envelopes, and assign a synthesis agent to reconcile those envelopes.
+
+4. A Product-Free Reference Architecture
+
+Figure 1. Product-free workflow for polymodal synthesis.
+
+The architecture is deliberately simple. It introduces semantic discipline at the boundaries between agents rather than requiring a new runtime.
+
+5. The Core Technique
+
+5.1 Modality manifests
+
+For each semantic dimension, create a small, explicit manifest. Its purpose is not to encode everything the domain knows. It establishes the concepts most likely to be misunderstood across domains and the assumptions that must travel with conclusions.
+
+modality: cybersecurityversion: 1concepts:  risk:    meaning: potential loss from a threat exploiting a vulnerability  exposure:    meaning: accessibility of an asset or information to a threat  control:    meaning: mechanism that reduces likelihood or impactassumptions:  - assets have different sensitivity and business value  - external accessibility changes threat likelihoodevidence:  preferred:    - observed configuration    - logs    - reproducible test
+
+A finance manifest may define “risk” and “exposure” differently. That difference is a feature. The manifests make it visible.
+
+5.2 Agent-to-modality binding
+
+Bind an agent to a modality through its workspace instructions. In a product-free implementation, this can be as simple as a line in AGENTS.md plus a modality file in the workspace. The binding should tell the agent to reason natively in that domain, preserve domain-specific definitions, and mark when it intentionally imports a concept from another domain.
+
+# AGENTS.md excerptPrimary modality: cybersecurityModality manifest: reference/modality-cybersecurity.yamlRules:1. Use the modality's definitions when interpreting ambiguous terms.2. Do not silently normalize another domain's terminology into this modality.3. When handing work to another agent, emit a Dimensional Envelope.4. Separate observation, domain interpretation, and recommendation.
+
+OpenClaw workspaces natively load AGENTS.md, SOUL.md, IDENTITY.md, USER.md, and optional memory material into agent context, making the workspace a natural place to keep these instructions. [1]
+
+5.3 Dimensional envelopes
+
+A dimensional envelope is the contract for inter-agent meaning. Natural-language prose can remain inside the envelope, but it must travel with enough semantic metadata to prevent the receiving agent from assuming its own definitions were intended.
+
+{  "source_agent": "vulnerability-analyst",  "source_modality": "cybersecurity",  "claim": "Customer data is exposed",  "concepts": [    {      "term": "exposure",      "meaning_ref": "cybersecurity.exposure"    }  ],  "evidence": [    "Externally reachable endpoint can retrieve customer records"  ],  "assumptions": [    "Observed endpoint is representative of production"  ],  "confidence": "high",  "open_questions": [    "Does access require a contractual or regulatory interpretation?"  ]}
+
+The envelope prevents a common failure mode in multi-agent systems: the receiver treats a sentence as context-free truth rather than a claim produced within a particular semantic frame.
+
+5.4 Concept bridges
+
+A bridge states how two concepts relate without declaring them identical. Bridges can be authored manually at first and discovered as the team observes recurring cross-domain transitions.
+
+bridge:  from: cybersecurity.exposure  to: finance.exposure  relationship: contributes_to  explanation: >    Cybersecurity exposure can create financial exposure when    the affected asset has economic, contractual, regulatory,    remediation, or reputational consequences.
+
+A small bridge vocabulary is enough for an MVP: equivalent_to, related_to, contributes_to, causes, constrains, conflicts_with, and transforms_to. Avoid building a universal ontology. The objective is to preserve distinctions while making the path between them explicit.
+
+5.5 Polymodal synthesis
+
+Synthesis is a separate reasoning operation. It receives envelopes from two or more modalities, identifies shared entities and bridgeable concepts, preserves disagreements, and produces cross-domain relationships. The synthesis output should distinguish three things: what each modality concluded, what relationship was inferred between modalities, and what new conclusion exists only because the dimensions were combined.
+
+The key test
+
+If the final answer could have been produced by simply concatenating the domain agents’ answers, you have orchestration. If the final answer identifies a relationship that only becomes visible by translating across domains, you have polymodal synthesis.
+
+6. Implementing the Technique in OpenClaw Today
+
+6.1 Start with three modalities, not ten
+
+Choose a problem where three domains genuinely change one another. For a software company, engineering + cybersecurity + business/finance is a strong starting point. Legal or compliance can be added when the organization has appropriate subject-matter review.
+
+Define 8-12 high-value concepts per modality. Focus on overloaded terms such as risk, exposure, failure, value, control, severity, impact, and obligation.
+
+Create one modality manifest per domain and store it in the relevant workspaces.
+
+Give each agent explicit instructions to use its domain definitions and to emit a dimensional envelope when handing off conclusions.
+
+Create a small shared bridge catalog containing only relationships actually needed by the initial use case.
+
+Create one synthesis agent whose job is not to become another domain expert, but to preserve provenance and reason across the envelopes.
+
+Run the same problem through ordinary multi-agent coordination and through the polymodal protocol. Compare the resulting insights.
+
+6.2 Suggested workspace layout
+
+~/.openclaw/  workspace-engineering/    AGENTS.md    SOUL.md    reference/      modality-engineering.yaml      envelope-schema.md  workspace-security/    AGENTS.md    SOUL.md    reference/      modality-cybersecurity.yaml      envelope-schema.md  workspace-finance/    AGENTS.md    SOUL.md    reference/      modality-finance.yaml      envelope-schema.md  workspace-synthesis/    AGENTS.md    reference/      bridge-catalog.yaml      synthesis-protocol.md
+
+OpenClaw supports explicit per-agent workspace paths and multi-agent entries, so these semantic workspaces can coexist on one Gateway. [2]
+
+6.3 Routing work between agents
+
+Use the existing session tools as the transport. The orchestrating agent can send a problem to domain agents, receive their structured envelopes, and then send the complete envelope set to the synthesis agent. OpenClaw documents sessions_send for running another session on the same Gateway and supports cross-agent policy controls over which agents may participate. [3] [5]
+
+User question   |   +--> Engineering agent --> Engineering Envelope --+   |                                                   |   +--> Security agent ----> Security Envelope --------+--> Synthesis agent   |                                                   |        |   +--> Finance agent -----> Finance Envelope ---------+        +--> Cross-domain result
+
+6.4 Keep raw domain output separate from synthesis
+
+Do not let the orchestrator paraphrase each domain result before synthesis. Pass the original envelope intact. If compression is necessary, compress inside the source modality and record that it was summarized. This preserves provenance and reduces accidental semantic normalization.
+
+6.5 Use structured prompts before writing code
+
+The first implementation can be entirely prompt-and-file based. A dedicated skill may help standardize the process, but it is not essential. Native plugin hooks become useful only when you want the platform to inject modality context automatically, enforce envelope schemas, or gate actions based on semantic state. Current OpenClaw hooks can add prompt context through before_prompt_build and gate tool calls through before_tool_call. [4]
+
+7. A Worked Cross-Domain Example
+
+Scenario: Should an AI document agent be released to enterprise customers?
+
+Assume a company has built an autonomous document agent that can search files, summarize them, and call external services. The team wants a go/no-go assessment. An ordinary multi-agent approach might ask engineering, security, finance, and policy specialists for opinions. A polymodal approach asks each domain to characterize the same system in its own semantic frame, then synthesizes the transitions.
+
+Modality
+
+Domain claim
+
+Meaning in that domain
+
+Potential bridge
+
+Engineering
+
+The agent can traverse shared storage through the connector.
+
+A capability of the implemented architecture.
+
+Capability creates reachable data surface.
+
+Cybersecurity
+
+The connector exposes data outside least-privilege boundaries.
+
+An exposure that increases potential unauthorized access.
+
+Security exposure may become policy or financial exposure.
+
+Legal / Policy
+
+Some reachable records are governed by contractual or regulatory obligations.
+
+Access may create duties depending on facts and jurisdiction.
+
+Obligation changes required controls and approval thresholds.
+
+Finance
+
+A preventable disclosure has measurable remediation and business cost.
+
+Exposure can be modeled as economic downside, not just technical severity.
+
+Financial impact can change engineering priority.
+
+Polymodal synthesis: the engineering capability is not merely a feature, and the security exposure is not merely a security finding. Once the dimensions are related, the same architectural decision becomes a chain of significance: implementation capability → data exposure → obligation/control requirement → expected business cost. That cross-domain chain is the synthesized insight.
+
+The technique does not replace domain experts, legal review, or quantitative validation. It improves the structure through which domain-specific reasoning is combined.
+
+8. Prompt and File Templates
+
+8.1 Domain-agent instruction
+
+You are operating primarily within the <MODALITY> modality.Use the definitions and assumptions in the modality manifest.When a term could have a materially different meaning in another domain,make your local meaning explicit.For every cross-agent handoff, return:1. Observations2. Domain interpretations3. Claims4. Concepts used and their modality-qualified meaning5. Evidence6. Assumptions7. Confidence / uncertainty8. Questions that require another modalityDo not silently reinterpret another modality's terminology as your own.
+
+8.2 Synthesis-agent instruction
+
+You are the polymodal synthesis agent.You do not replace the source modalities. Preserve their definitions and provenance.Given two or more Dimensional Envelopes:1. Identify shared real-world entities.2. Identify same-word/different-meaning terms.3. Identify concepts that can be bridged.4. State each bridge and why it is justified.5. Preserve unresolved conflicts instead of forcing consensus.6. Derive cross-domain conclusions only after the bridge is explicit.7. Label each conclusion as:   - source-domain conclusion   - bridge inference   - synthesized conclusion8. End with a trace showing which modalities contributed to each synthesized result.
+
+8.3 Bridge-discovery instruction
+
+Compare the two modality manifests.Do not search for identical words only. Search for relationships between concepts.For each proposed bridge provide:- source concept- target concept- relationship type- explanation- counterexample or condition where the bridge does NOT hold- confidencePrefer a small number of defensible bridges over a broad universal mapping.
+
+9. Governance, Safety, and Semantic Integrity
+
+Polymodality increases the system’s reasoning surface, which makes traceability more important, not less. The following controls should be part of the technique from the first experiment:
+
+Provenance: every cross-domain claim names the source agent and source modality.
+
+Meaning preservation: overloaded terms remain modality-qualified until a bridge is explicitly applied.
+
+Uncertainty preservation: the synthesis agent cannot upgrade a source agent’s confidence without new evidence.
+
+Conflict visibility: incompatible domain conclusions are recorded as conflicts rather than averaged into a vague compromise.
+
+Human authority: high-stakes conclusions remain advisory unless the existing system separately authorizes an action.
+
+Tool isolation: semantic collaboration does not imply identical tool access. Keep OpenClaw per-agent tool and sandbox policies independent from the modality model.
+
+Boundary discipline: do not treat workspace location alone as a security boundary; OpenClaw documentation notes that workspaces are a default working directory and that sandboxing is required for stronger isolation. [1]
+
+This separation is important: polymodality determines how meaning crosses domains; cybersecurity determines whether actions and data access are permitted. The two can reinforce each other, but neither should be used as a substitute for the other.
+
+10. Measuring Whether Polymodal Synthesis Is Working
+
+A prototype should be judged by whether the technique creates better cross-domain reasoning, not by how elaborate the ontology becomes. Useful measures include:
+
+Measure
+
+Question
+
+Domain fidelity
+
+Did each specialist retain its own definitions and assumptions?
+
+Semantic collision detection
+
+Did the system catch same-word/different-meaning terms before they caused confusion?
+
+Bridge usefulness
+
+Did an explicit relationship between domains explain something that isolated outputs did not?
+
+Novel synthesis
+
+Did the final result contain a defensible cross-domain insight rather than a summary of opinions?
+
+Traceability
+
+Can a reviewer trace each synthesis conclusion back to source envelopes and bridges?
+
+Conflict preservation
+
+Did the system preserve unresolved disagreements rather than manufacture consensus?
+
+Human comprehensibility
+
+Can a domain expert inspect and challenge the synthesis path?
+
+11. Limitations of the Technique Today
+
+A prompt-and-file implementation is intentionally lightweight, but it has real limitations:
+
+Manifests and bridges are manually authored and can drift as domains evolve.
+
+LLMs may still ignore, merge, or reinterpret modality definitions unless prompts and evaluation are disciplined.
+
+Natural-language envelopes provide semantic structure but are not formal proof systems.
+
+Cross-agent communication increases token use, latency, and opportunities for context loss.
+
+OpenClaw is evolving quickly; configuration and plugin interfaces should be pinned and verified against the deployed version.
+
+A single synthesis agent can itself become a semantic bottleneck if it accumulates too much hidden domain authority.
+
+Domain expertise must still be validated by qualified humans where decisions are high-impact, regulated, safety-critical, or financially material.
+
+These limitations are not reasons to avoid the experiment. They define the boundary between a technique that can be practiced today and the product opportunity that could automate it tomorrow.
+
+12. From Technique to Product
+
+The natural product path is incremental. Every stage should preserve compatibility with the underlying technique so users can inspect what the system is doing.
+
+Stage
+
+Implementation
+
+Automation added
+
+What remains explicit
+
+0. Technique
+
+Markdown/YAML + prompts + OpenClaw agents
+
+None
+
+All modality definitions, envelopes, bridges
+
+1. Convention
+
+Shared schemas + reusable skills/templates
+
+Validation and generation
+
+Human-approved manifests and bridges
+
+2. Plugin
+
+OpenClaw native extension
+
+Automatic modality injection, envelope capture, synthesis calls
+
+Inspectable bridge and trace data
+
+3. Fabric
+
+Persistent semantic graph and policy-aware synthesis
+
+Bridge discovery, provenance graph, evaluations
+
+Human governance and domain authority
+
+4. Ecosystem
+
+Portable modality packs and inter-agent contracts
+
+Reusable domain interoperability
+
+Local organizations retain control of definitions
+
+The product opportunity is not to replace multi-agent orchestration. It is to make meaning portable across the boundaries that orchestration creates.
+
+Conclusion
+
+Agentic Polymodality can be practiced before it is productized. The essential move is conceptual: stop treating agents as specialized voices inside one flattened context and start treating their domains as independent semantic dimensions. Give each modality explicit definitions and assumptions. Require agents to hand off claims in dimensional envelopes. Bridge concepts instead of equating them. Perform synthesis as a separate, traceable operation.
+
+OpenClaw already has enough infrastructure to test this approach: isolated agent workspaces and bootstrap context, per-agent configuration, cross-agent session tools, and optional lifecycle hooks for later automation. [1] [2] [3] [4]
+
+The hypothesis is simple but ambitious: the next leap in multi-agent systems may not come from adding more agents. It may come from allowing different dimensions of understanding to remain distinct long enough to be synthesized into something deeper than any one of them could see alone.
+
+Appendix A: Minimal Starter Layout
+
+A.1 modality.yaml
+
+modality: <id>version: 1purpose: <one sentence>concepts:  <term>:    meaning: <domain-specific meaning>assumptions:  - <assumption>evidence:  preferred:    - <evidence type>boundaries:  - <what this modality should not claim authority over>
+
+A.2 envelope.json
+
+{  "source_agent": "<agent-id>",  "source_modality": "<modality-id>",  "observations": [],  "claims": [],  "concepts": [],  "evidence": [],  "assumptions": [],  "confidence": "low|medium|high",  "open_questions": []}
+
+A.3 bridge.yaml
+
+bridge:  from: <modality-a.concept>  to: <modality-b.concept>  relationship: <equivalent_to|related_to|contributes_to|causes|constrains|conflicts_with|transforms_to>  explanation: <why the relationship holds>  conditions: <when it holds>  counterexample: <when it does not hold>  confidence: <low|medium|high>
+
+A.4 synthesis output
+
+SYNTHESISSource-domain conclusions- [modality] ...Bridges applied- A.concept --relationship--> B.conceptSynthesized conclusions- ...Conflicts / unresolved translations- ...Trace- conclusion 1 <- envelope A + bridge 2 + envelope B
+
+Appendix B: Reference Sources
+
+OpenClaw is under active development. The technical statements in this paper were checked against the OpenClaw documentation available on September 18, 2026. Verify the deployed version before implementing configuration or plugin behavior.
+
+[1] OpenClaw, “Agent workspace” and “Agent runtime” — per-agent workspace files, bootstrap context, and workspace behavior. https://docs.openclaw.ai/agent-workspace
+
+[2] OpenClaw, “Configuration — per-agent entries and multi-agent routing” — per-agent workspaces, tools, models, sandboxes, and multi-agent routing. https://docs.openclaw.ai/gateway/config-agents/entries-and-multi-agent
+
+[3] OpenClaw, “Session tools” and “Configuration — cross-agent, session, and subagent tools” — sessions_send, cross-agent session access, and cross-agent policy. https://docs.openclaw.ai/concepts/session-tool
+
+[4] OpenClaw, “Plugin hooks” — before_prompt_build and before_tool_call capabilities. https://docs.openclaw.ai/plugins/hooks
+
+[5] OpenClaw, “Configuration — cross-agent, session, and subagent tools” — tools.agentToAgent policy. https://docs.openclaw.ai/gateway/config-tools/sessions-and-subagents
+
+[6] OpenClaw, “Memory overview” — workspace memory files and persistence model. https://docs.openclaw.ai/concepts/memory
+
+[7] OpenClaw, “Configuration — MCP, skills, and plugins” — plugin configuration and prompt-injection permissions. https://docs.openclaw.ai/gateway/config-extensions
+
+[8] OpenClaw, “Tool call policy hooks” — tool-call context and policy decisions. https://docs.openclaw.ai/plugins/hooks/tool-policy
